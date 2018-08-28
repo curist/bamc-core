@@ -7,7 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "dependencies": {},
+  "dependencies": {
+    "jss": "^9.8.7",
+    "mithril": "^1.1.6"
+  },
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "^6.23.0",
