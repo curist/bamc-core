@@ -1,24 +1,8 @@
 import { EventEmitter } from 'events'
-
 import { TelnetInput } from 'telnet-stream'
-const telnetInput = new TelnetInput();
+import { PassThrough } from 'stream'
 
-const { PassThrough } = require('stream');
-const pass = new PassThrough();
-
-pass.pipe(telnetInput)
-
-telnetInput.on('data', data => console.log(`data ${data}`))
-telnetInput.on('do', data => console.log(`do ${data}`))
-telnetInput.on('will', data => console.log(`will ${data}`))
-telnetInput.on('command', data => console.log(`cmd ${data}`))
-telnetInput.on('sub', (...data) => console.log(`sub ${data}`))
-
-pass.on('data', chunk => console.log('chunk: ' + chunk.toString()))
-pass.write('ok')
-pass.write(new Uint8Array([0xff, 0xfd, 0xc9]))
-pass.write(new Uint8Array([0xff, 0xfa, 0xc9, 0x61, 0x62, 0x63, 0xff, 0xf0, 0x61]))
-
+const GMCP = 0xc9
 
 const url = 'wss://cw2.twmuds.com/websocket/v1939'
 // user / password
@@ -29,7 +13,21 @@ const url = 'wss://cw2.twmuds.com/websocket/v1939'
 // sync_time
 export default function() {
   const event = new EventEmitter
-  const cli = {} // new WebSocket(url)
+  const cli = new WebSocket(url)
+
+  const pass = new PassThrough()
+  const telnetInput = new TelnetInput()
+  pass.pipe(telnetInput)
+
+  telnetInput.on('data', data => event.emit('data', data))
+  telnetInput.on('do', data => console.log(`do ${data}`))
+  telnetInput.on('will', data => console.log(`will ${data}`))
+  telnetInput.on('command', data => console.log(`cmd ${data}`))
+  telnetInput.on('sub', (sub, data) => {
+    if(sub === GMCP) {
+      event.emit('gmcp', data)
+    }
+  })
 
   cli.binaryType = 'arraybuffer'
 
@@ -52,7 +50,7 @@ export default function() {
   cli.onmessage = e => {
     const arraybuffer = e.data
     const uarr = new Uint8Array(arraybuffer)
-    event.emit('message', uarr)
+    pass.write(uarr)
   }
 
   function cmd(cmd) {
