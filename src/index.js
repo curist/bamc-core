@@ -10,7 +10,15 @@ async function main() {
 
   event.on('data', uarr => {
     const text = new TextDecoder().decode(uarr)
-    term.write(text)
+    const lines = text.split('\n')
+
+    const promptRxp = /> $/;
+    term.write(lines.filter(l => !promptRxp.test(l)).join('\n'))
+
+    const lastLine = lines.slice(-1)[0]
+    if(promptRxp.test(lastLine)) {
+      term.write(lastLine.replace(promptRxp, '\n\n'))
+    }
   })
 
   event.on('gmcp', uarr => {
