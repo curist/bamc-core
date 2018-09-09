@@ -12,12 +12,16 @@ async function main() {
     const text = new TextDecoder().decode(uarr)
     const lines = text.split('\n')
 
-    const promptRxp = /> $/;
-    term.write(lines.filter(l => !promptRxp.test(l)).join('\n'))
+    const promptRgx = /> $/
+    const csiRgx = /\x1b\[[0-9;]*[a-zA-Z]/g
+
+    console.log(lines.map(l => l.replace(csiRgx, '')))
+
+    term.write(lines.filter(l => !promptRgx.test(l)).join('\n'))
 
     const lastLine = lines.slice(-1)[0]
-    if(promptRxp.test(lastLine)) {
-      term.write(lastLine.replace(promptRxp, '\n\n'))
+    if(promptRgx.test(lastLine)) {
+      term.write(lastLine.replace(promptRgx, '\n\n'))
     }
   })
 
