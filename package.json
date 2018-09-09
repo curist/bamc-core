@@ -9,6 +9,7 @@
   },
   "author": "",
   "dependencies": {
+    "net": "^1.0.2",
     "telnet-stream": "^1.0.4"
   },
   "devDependencies": {
