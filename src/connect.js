@@ -5,8 +5,6 @@ import { PassThrough } from 'stream'
 const GMCP = 0xc9
 
 const url = 'wss://cw2.twmuds.com/websocket/v1939'
-// user / password
-// done / done@cw2
 
 // cmds
 // load_map death
