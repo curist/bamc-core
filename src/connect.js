@@ -19,7 +19,13 @@ export default function() {
   const telnetInput = new TelnetInput()
   pass.pipe(telnetInput)
 
-  telnetInput.on('data', data => event.emit('data', data))
+  telnetInput.on('data', data => {
+    const text = new TextDecoder().decode(data)
+    const lines = text.split('\n')
+    for(let line of lines) {
+      event.emit('line', line)
+    }
+  })
   telnetInput.on('do', data => console.log(`do ${data}`))
   telnetInput.on('will', data => console.log(`will ${data}`))
   telnetInput.on('command', data => console.log(`cmd ${data}`))

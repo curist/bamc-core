@@ -8,21 +8,18 @@ async function main() {
 
   event.on('open', () => console.log('cli open'))
 
-  event.on('data', uarr => {
-    const text = new TextDecoder().decode(uarr)
-    const lines = text.split('\n')
-
+  event.on('line', line => {
     const promptRgx = /> $/
     const csiRgx = /\x1b\[[0-9;]*[a-zA-Z]/g
 
-    console.log(lines.map(l => l.replace(csiRgx, '')))
+    console.log(line.replace(csiRgx, ''))
 
-    term.write(lines.filter(l => !promptRgx.test(l)).join('\n'))
-
-    const lastLine = lines.slice(-1)[0]
-    if(promptRgx.test(lastLine)) {
-      term.write(lastLine.replace(promptRgx, '\n\n'))
+    if(!promptRgx.test(line)) {
+      term.write(line)
+    } else {
+      term.write(line.replace(promptRgx, '\n'))
     }
+    term.write('\n')
   })
 
   event.on('gmcp', uarr => {
