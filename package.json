@@ -1,6 +1,6 @@
 {
   "name": "bamc-core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The core lib for BAMC",
   "main": "dist/main.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "dependencies": {
     "debug": "^3.1.0",
     "net": "^1.0.2",
+    "readable-stream": "^2.2.2",
     "telnet-stream": "^1.0.4"
   },
   "devDependencies": {
