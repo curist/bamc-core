@@ -1,60 +1,85 @@
 import { EventEmitter } from 'events'
 import { TelnetInput } from 'telnet-stream'
 import { PassThrough } from 'stream'
+import debug from 'debug'
 
 const GMCP = 0xc9
 
 const url = 'wss://cw2.twmuds.com/websocket/v1939'
 
-// cmds
-// load_map death
-// sync_time
-export default function() {
-  const event = new EventEmitter
-  const cli = new WebSocket(url)
+const STATUS = {
+  DISCONNECTED: 'disconnected',
+  CONNECTED: 'connected',
+}
 
-  const pass = new PassThrough()
+function bindTelnetInputEvents(event) {
   const telnetInput = new TelnetInput()
-  pass.pipe(telnetInput)
+
+  const logline = debug('bamc:line')
 
   telnetInput.on('data', data => {
     const text = new TextDecoder().decode(data)
     const lines = text.split('\n')
     for(let line of lines) {
+      logline(line)
       event.emit('line', line)
     }
   })
-  telnetInput.on('do', data => console.log(`do ${data}`))
-  telnetInput.on('will', data => console.log(`will ${data}`))
-  telnetInput.on('command', data => console.log(`cmd ${data}`))
-  telnetInput.on('sub', (sub, data) => {
-    if(sub === GMCP) {
-      event.emit('gmcp', data)
+  const iacVerbs = [ 'do', 'dont', 'will', 'wont' ]
+  for(let v of iacVerbs) {
+    const log = debug(`bamc:iac:${v}`)
+    telnetInput.on(v, option => {
+      log(option)
+      event.emit(`iac:${v}`, option)
+    })
+  }
+  telnetInput.on('sub', (option, buffer) => {
+    if(option === GMCP) {
+      return event.emit('iac:sub:gmcp', buffer)
     }
+    event.emit('iac:sub', { option, buffer })
   })
+
+  return telnetInput
+}
+
+export default function() {
+  const event = new EventEmitter
+  const cli = new WebSocket(url)
 
   cli.binaryType = 'arraybuffer'
 
+  let state = {
+    status: STATUS.DISCONNECTED
+  }
+
+  event.getState = () => state
+
+  const passthrough = new PassThrough()
+  const telnetInput = bindTelnetInputEvents(event)
+  passthrough.pipe(telnetInput)
+
+  const log = debug('bamc:conn')
+
   cli.onclose = () => {
-    console.info('conn close')
+    log('conn close')
     event.emit('close')
   }
 
   cli.onerror = err => {
-    console.info('conn error')
-    console.error(err)
+    log('conn error: %o', err)
     event.emit('error', err)
   }
 
   cli.onopen = () => {
-    console.info('conn open')
+    log('conn open')
     event.emit('open')
   }
 
   cli.onmessage = e => {
     const arraybuffer = e.data
     const uarr = new Uint8Array(arraybuffer)
-    pass.write(uarr)
+    passthrough.write(uarr)
   }
 
   function cmd(cmd) {
@@ -82,10 +107,17 @@ export default function() {
       case 'send': {
         const { message } = action
         send(message)
+        break
       }
       case 'cmd': {
         const { message } = action
         cmd(message)
+        break
+      }
+      case 'raw': {
+        const { bytes } = action
+        raw(bytes)
+        break
       }
       default: return
     }

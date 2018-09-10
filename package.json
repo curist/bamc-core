@@ -11,6 +11,7 @@
   },
   "author": "",
   "dependencies": {
+    "debug": "^3.1.0",
     "net": "^1.0.2",
     "telnet-stream": "^1.0.4"
   },

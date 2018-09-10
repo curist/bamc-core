@@ -7,6 +7,7 @@ const PASSWORD = 'done@cw2'
 
 async function main() {
   const event = connect()
+  window.event = event
 
   event.on('open', () => console.log('cli open'))
 
@@ -24,14 +25,14 @@ async function main() {
     term.write('\n')
   })
 
-  event.on('gmcp', uarr => {
-    const gmcpText = new TextDecoder().decode(uarr)
+  event.on('iac:sub:gmcp', buffer => {
+    const gmcpText = new TextDecoder().decode(buffer)
     $('pre').append('\n' + gmcpText)
     $('pre').scrollTop($('pre')[0].scrollHeight)
   })
 
-  event.on('gmcp', uarr => {
-    const text = new TextDecoder().decode(uarr)
+  event.on('iac:sub:gmcp', buffer => {
+    const text = new TextDecoder().decode(buffer)
     const [cmd, ...data] = text.split(' ')
     switch(cmd) {
       case 'auto-login.username': {
@@ -58,7 +59,6 @@ async function main() {
       message: value
     })
     $input.select()
-    term.write(`${value}\n`)
   })
 
   $('form#cmd').on('submit', e => {
