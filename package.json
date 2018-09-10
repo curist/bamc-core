@@ -1,15 +1,15 @@
 {
-  "name": "catworld",
+  "name": "bamc-core",
   "version": "0.1.0",
-  "description": "",
-  "main": "src/index.js",
+  "description": "The core lib for BAMC",
+  "main": "dist/main.js",
   "scripts": {
     "start": "poi",
     "dev": "poi",
-    "build": "poi build --source-map false",
+    "build": "poi build --source-map false --format cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "curist",
   "dependencies": {
     "debug": "^3.1.0",
     "net": "^1.0.2",
