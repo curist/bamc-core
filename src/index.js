@@ -10,13 +10,13 @@ const STATUS = {
   CONNECTED: 'connected',
 }
 
-function bindTelnetInputEvents(event) {
+function bindTelnetInputEvents(event, encoding) {
   const telnetInput = new TelnetInput()
 
   const logline = debug('bamc:line')
 
   telnetInput.on('data', data => {
-    const text = new TextDecoder().decode(data)
+    const text = data.toString(encoding)
     const lines = text.split('\n')
     for(let line of lines) {
       logline(line)
@@ -41,7 +41,7 @@ function bindTelnetInputEvents(event) {
   return telnetInput
 }
 
-export default function(url) {
+export default function(url, encoding='utf8') {
   const event = new EventEmitter
   const cli = new WebSocket(url)
 
@@ -54,7 +54,7 @@ export default function(url) {
   event.getState = () => state
 
   const passthrough = new PassThrough()
-  const telnetInput = bindTelnetInputEvents(event)
+  const telnetInput = bindTelnetInputEvents(event, encoding)
   passthrough.pipe(telnetInput)
 
   const log = debug('bamc:conn')
