@@ -1,12 +1,12 @@
 {
   "name": "bamc-core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "The core lib for BAMC",
   "main": "dist/main.js",
   "scripts": {
     "start": "poi",
     "dev": "poi",
-    "build": "poi build --source-map false --format umd",
+    "build": "poi build src/index.js --source-map false --format cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "curist",
